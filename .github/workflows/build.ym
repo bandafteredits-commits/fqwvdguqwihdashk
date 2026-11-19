@@ -1,0 +1,36 @@
+name: Build critbob
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up MSVC (x64)
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Build critbob.dll
+        shell: cmd
+        run: >
+          cl /nologo /O2 /EHsc /MT /LD critbob.cpp /Fe:critbob.dll
+          /link user32.lib d3d11.lib dxgi.lib
+
+      - name: Build critbob_inject.exe
+        shell: cmd
+        run: >
+          cl /nologo /O2 /EHsc /MT critbob_inject.cpp /Fe:critbob_inject.exe
+          /link user32.lib advapi32.lib shell32.lib psapi.lib
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: critbob-build
+          path: |
+            critbob.dll
+            critbob_inject.exe
